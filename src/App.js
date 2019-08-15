@@ -5,7 +5,7 @@ import { GraphQLClient } from "graphql-request";
 
 const client = new GraphQLClient("https://api.github.com/graphql", {
   headers: {
-    authorization: `Bearer 82bd2f1f57dd5114b705b25d4aaa81666883f98b`
+    authorization: `Bearer `
   }
 });
 
