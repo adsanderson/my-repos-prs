@@ -1,84 +1,102 @@
-import React, { useEffect } from "react";
-import logo from "./logo.svg";
+import React from "react";
 import "./App.css";
 import { GraphQLClient } from "graphql-request";
 import NetlifyAuthProvider from "netlify-auth-providers";
+import { assign, spawn } from "xstate";
+import { useMachine } from "@xstate/react";
 
-const client = new GraphQLClient("https://api.github.com/graphql", {
-  headers: {
-    authorization: `Bearer `
+import { authMachine } from "./state-machines/auth-machine";
+import { prMachine } from "./state-machines/pr-machine";
+import { Authenticated } from "./components/Authenticated";
+
+const authMachineWithImplementation = authMachine.withConfig({
+  services: {
+    authenticate: auth
+  },
+  actions: {
+    setToken: assign((_, evt) => {
+      return {
+        token: evt.data.token,
+        prRef: spawn(
+          prMachine
+            .withConfig({
+              services: {
+                getPrs: getPrs
+              },
+              actions: {
+                prsLoaded: assign((_, evt) => {
+                  return {
+                    prs: evt.data.viewer.repositories.nodes
+                  };
+                })
+              }
+            })
+            .withContext({
+              token: evt.data.token
+            })
+        )
+      };
+    })
   }
 });
 
 function auth() {
   const authenticator = new NetlifyAuthProvider({
-    site_id: "romantic-kare-cb8440"
+    site_id: "romantic-kare-cb8440.netlify.com"
   });
-  authenticator.authenticate({ provider: "github", scope: "user" }, function(
-    err,
-    data
-  ) {
-    if (err) {
-      return console.error(err);
-    }
-    console.log(data);
+  return new Promise((resolve, reject) => {
+    authenticator.authenticate({ provider: "github", scope: "user" }, function(
+      err,
+      data
+    ) {
+      if (err) {
+        reject(err);
+      }
+      resolve(data);
+    });
   });
 }
 
+async function getPrs(ctx) {
+  const client = new GraphQLClient("https://api.github.com/graphql", {
+    headers: {
+      authorization: `Bearer ${ctx.token}`
+    }
+  });
+
+  const result = await client.request(`
+  query { 
+    viewer { 
+      repositories(first: 100) {
+        nodes {
+          name
+          pullRequests(first: 100) {
+            nodes {
+              title
+              url
+            }
+          }
+        }
+      }
+    }
+  }
+  `);
+  return result;
+}
+
 function App() {
+  const [state, send] = useMachine(authMachineWithImplementation);
   return (
     <div className="App">
-      <button onClick={() => auth()}>Auth</button>
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h2>
+        {state.value} {state.context.token}
+      </h2>
+      <button onClick={() => send("SIGN_IN")}>Sign in</button>
+      {state.value === "authenticated" ? (
+        <Authenticated prRef={state.context.prRef} />
+      ) : null}
     </div>
   );
 }
 
 export default App;
-
-function Test() {
-  // const { loading, error, data } = useQuery(gql`
-  //   query {
-  //     viewer {
-  //       repositories(first: 100) {
-  //         nodes {
-  //           name
-  //         }
-  //       }
-  //     }
-  //   }
-  // `);
-
-  useEffect(() => {
-    async function x() {
-      const result = await client.request(`
-    query {
-      viewer {
-        repositories(first: 100) {
-          nodes {
-            name
-          }
-        }
-      }
-    }
-  `);
-      console.log(result);
-    }
-    x();
-  });
-
-  return <div>done</div>;
-}
