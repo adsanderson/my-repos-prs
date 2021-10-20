@@ -5,7 +5,7 @@
   "dependencies": {
     "@xstate/react": "^0.7.0",
     "graphql": "^14.4.2",
-    "graphql-request": "^1.8.2",
+    "graphql-request": "3.6.1",
     "netlify-auth-providers": "^1.0.0-alpha5",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
