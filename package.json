@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@xstate/react": "^0.7.0",
+    "@xstate/react": "^3.0.0",
     "graphql": "^14.4.2",
     "graphql-request": "^1.8.2",
     "netlify-auth-providers": "^1.0.0-alpha5",
