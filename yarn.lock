@@ -9273,9 +9273,7 @@ table@^5.2.3:
     string-width "^3.0.0"
 
 tailwindcss@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/tailwindcss/-/tailwindcss-1.1.2.tgz#0107dc092c3edee6132b105d896b109c0f66afd6"
-  integrity sha512-mcTzZHXMipnQY9haB17baNJmBTkYYcC8ljfMdB9/97FfhKJIzlglJcyGythuQTOu7r/QIbLfZYYWZhAvaGj95A==
+  version "1.9.6"
   dependencies:
     autoprefixer "^9.4.5"
     bytes "^3.0.0"
